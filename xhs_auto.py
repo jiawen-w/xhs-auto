@@ -380,19 +380,20 @@ def _clean_profile_locks():
             pass
 
 def _launch_browser(p):
-    """带锁清理和重试的浏览器启动：优先系统 Chrome，失败退回 Chromium。"""
+    """启动 Playwright 自带 Chromium（固定版本，避免和系统 Chrome 混用同一配置目录）。"""
     kwargs = dict(headless=False, viewport={"width": 1440, "height": 900},
                   args=["--disable-blink-features=AutomationControlled"])
     last_err = None
-    for channel in ("chrome", None):
+    for _ in range(2):
         _clean_profile_locks()
         try:
-            if channel:
-                return p.chromium.launch_persistent_context(PROFILE_DIR, channel=channel, **kwargs)
             return p.chromium.launch_persistent_context(PROFILE_DIR, **kwargs)
         except Exception as e:
             last_err = e
-    raise RuntimeError(f"浏览器启动失败（如果有上次没关的自动化浏览器窗口，请先关掉再试）：{last_err}")
+            time.sleep(2)
+    raise RuntimeError(
+        f"浏览器启动失败（先关掉残留的自动化浏览器窗口再试；"
+        f"如提示缺浏览器，运行: playwright install chromium）：{last_err}")
 
 def publish_to_xhs(data, image_paths, out_dir, auto_yes=False):
     """打开创作者中心，上传图片并自动填入标题/正文/话题。"""
