@@ -69,15 +69,15 @@ COPY_PROMPT = """你是一个小红书重度用户，自己运营着一个不错
 1. 用第一人称真实经历的口吻，像跟朋友发微信一样说话，可以有点小情绪、小吐槽
 2. 加入具体的细节：具体数字、具体场景、具体的失败教训，宁可编得具体也不要写得空泛
 3. 禁止出现这些 AI 腔：首先/其次/最后、总之/综上所述、值得注意的是、不仅...还...、赋能、闭环、攻略来啦、宝子们（最多出现一次）、家人们（最多一次）、排比句堆砌
-4. 句子要短，多换行，一段不超过 3 行。emoji 适量用在段首或句尾，别堆
+4. 句子要短，多换行，一段不超过 3 行。全文带 3~6 个 emoji，放在段首或句尾点缀，别堆在一起
 5. 标题不超过 {TITLE_MAX} 个字，要有钩子（数字、反差、悬念、利益点选一种），别用感叹号堆砌
 6. 正文 350~550 字，结尾自然收住，可以抛个问题引导评论，但别写"你们觉得呢？"这种烂大街的
 7. 话题标签 5~8 个，由热门大词 + 精准长尾词组成，不带 # 号
 
 【图片卡片内容】
 同时为这篇笔记设计 {N_PAGES} 张图的文字内容：
-- 第 1 张是封面：一句大字主标题（10 字以内，可以和笔记标题不同、更夸张更抓眼）+ 一句小字副标题 + 一个角标短词（2~6 字，如"亲测""避坑""第3期"）
-- 其余是内容卡：每张一个小标题 + 3~5 条要点，每条要点 15 字以内，干货密度要高
+- 第 1 张是封面：一句大字主标题（10 字以内，可以和笔记标题不同、更夸张更抓眼）+ 一句小字副标题（16 字以内）+ 一个角标短词（2~6 字，如"亲测""避坑""第3期"）
+- 其余是内容卡：每张一个小标题（8 字以内）+ 3~5 条要点，每条要点 14 字以内（超长会被截断），可以用 1 个贴合内容的 emoji 开头，干货密度要高
 
 【输出格式】只输出 JSON，不要任何解释、不要 markdown 代码块：
 {{
@@ -107,55 +107,78 @@ __EXTRA_CSS__
 </style></head><body>__BODY__</body></html>"""
 
 COVER_CSS = """
-.wrap { width:100%; height:100%; padding:90px 80px; position:relative;
+.wrap { width:100%; height:100%; padding:96px 88px; position:relative; overflow:hidden;
   display:flex; flex-direction:column; justify-content:center; }
-.badge { position:absolute; top:90px; right:80px; background:__MAIN__; color:#fff;
-  font-size:40px; font-weight:600; padding:18px 38px; border-radius:50px 50px 50px 8px; }
-.line1 { font-size:128px; font-weight:800; color:__TEXT__; line-height:1.25;
-  letter-spacing:4px; margin-bottom:48px; }
+.dotgrid { position:absolute; top:110px; left:88px; width:300px; height:130px; opacity:.45;
+  background-image:radial-gradient(__ACCENT__ 7px, transparent 7px); background-size:48px 44px; }
+.badge { position:absolute; top:96px; right:88px; background:__MAIN__; color:#fff;
+  font-size:38px; font-weight:600; padding:20px 42px; letter-spacing:3px;
+  border-radius:48px 48px 48px 10px; box-shadow:0 14px 34px __MAIN__44; }
+.kicker { display:flex; align-items:center; color:__SUB__; font-size:40px;
+  letter-spacing:8px; margin-bottom:54px; overflow:hidden; white-space:nowrap; }
+.kicker::before { content:""; width:64px; height:10px; border-radius:5px;
+  background:__MAIN__; margin-right:24px; flex:none; }
+.line1 { font-size:__T1SIZE__px; font-weight:800; color:__TEXT__; line-height:1.24;
+  letter-spacing:3px; margin-bottom:56px; max-height:2.6em; overflow:hidden; }
 .line1 em { font-style:normal; color:__MAIN__;
-  background:linear-gradient(transparent 68%, __ACCENT__55 68%); }
-.line2 { font-size:52px; color:__SUB__; line-height:1.5; }
-.bar { width:120px; height:14px; background:__MAIN__; border-radius:7px; margin-bottom:56px; }
-.foot { position:absolute; bottom:90px; left:80px; right:80px; display:flex;
-  justify-content:space-between; align-items:center; color:__SUB__; font-size:38px; }
-.foot .dots span { display:inline-block; width:16px; height:16px; border-radius:50%;
-  background:__ACCENT__; margin-left:12px; }
+  background:linear-gradient(transparent 70%, __ACCENT__66 70%); border-radius:4px; }
+.line2box { display:inline-block; align-self:flex-start; max-width:100%; background:__CARD__;
+  border:3px solid __ACCENT__; color:__SUB__; border-radius:26px; padding:28px 42px;
+  font-size:46px; line-height:1.45; box-shadow:10px 10px 0 __ACCENT__55;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.foot { position:absolute; bottom:88px; left:88px; right:88px; display:flex;
+  justify-content:space-between; align-items:center; color:__SUB__; font-size:36px;
+  letter-spacing:2px; border-top:3px dashed __ACCENT__88; padding-top:38px; }
 """
 
 COVER_BODY = """<div class="wrap">
-<div class="deco" style="width:520px;height:520px;background:__ACCENT__;top:-180px;left:-180px;"></div>
-<div class="deco" style="width:360px;height:360px;background:__MAIN__;bottom:-120px;right:-120px;opacity:.18;"></div>
+<div class="deco" style="width:560px;height:560px;background:__ACCENT__;top:-200px;left:-200px;opacity:.30;"></div>
+<div class="deco" style="width:420px;height:420px;background:__MAIN__;bottom:-160px;right:-140px;opacity:.14;"></div>
+<div class="deco" style="width:180px;height:180px;border:14px solid __ACCENT__;background:transparent;opacity:.35;bottom:300px;right:120px;"></div>
+<div class="dotgrid"></div>
 <div class="badge">__BADGE__</div>
-<div class="bar"></div>
+<div class="kicker">__KICKER__</div>
 <div class="line1">__LINE1__</div>
-<div class="line2">__LINE2__</div>
-<div class="foot"><span>持续更新中</span><span class="dots"><span></span><span></span><span></span></span></div>
+<div class="line2box">__LINE2__</div>
+<div class="foot"><span>持续更新中</span><span>左滑看干货 →</span></div>
 </div>"""
 
 CONTENT_CSS = """
-.wrap { width:100%; height:100%; padding:80px 70px; position:relative; }
-.card { width:100%; height:100%; background:__CARD__; border-radius:48px;
-  padding:90px 80px; box-shadow:0 20px 60px rgba(0,0,0,.06);
-  display:flex; flex-direction:column; position:relative; }
-.head { display:flex; align-items:center; margin-bottom:70px; }
-.head .num { font-size:46px; font-weight:800; color:#fff; background:__MAIN__;
-  width:96px; height:96px; border-radius:28px; display:flex; align-items:center;
-  justify-content:center; margin-right:36px; flex-shrink:0; }
-.head .h { font-size:74px; font-weight:800; color:__TEXT__; line-height:1.25; }
-.item { display:flex; align-items:flex-start; margin-bottom:54px; }
-.item .dot { width:22px; height:22px; border-radius:50%; background:__ACCENT__;
-  margin:26px 34px 0 6px; flex-shrink:0; }
-.item .t { font-size:56px; color:__TEXT__; line-height:1.55; }
-.pagefoot { margin-top:auto; display:flex; justify-content:space-between;
-  color:__SUB__; font-size:36px; padding-top:40px; border-top:3px dashed __ACCENT__66; }
+.wrap { width:100%; height:100%; padding:72px 64px; position:relative; overflow:hidden; }
+.card { width:100%; height:100%; background:__CARD__; border-radius:44px;
+  padding:80px 72px; border:2px solid __ACCENT__40;
+  box-shadow:0 24px 70px rgba(0,0,0,.07);
+  display:flex; flex-direction:column; overflow:hidden; position:relative; }
+.corner { position:absolute; top:-90px; right:-90px; width:280px; height:280px;
+  border-radius:50%; background:__ACCENT__; opacity:.18; }
+.head { display:flex; align-items:center; margin-bottom:30px; }
+.head .num { font-size:42px; font-weight:800; color:#fff;
+  background:linear-gradient(135deg,__MAIN__,__ACCENT__);
+  width:92px; height:92px; border-radius:26px; display:flex; align-items:center;
+  justify-content:center; margin-right:34px; flex-shrink:0;
+  box-shadow:0 10px 24px __MAIN__40; }
+.head .h { font-size:__HSIZE__px; font-weight:800; color:__TEXT__; line-height:1.2;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hbar { width:150px; height:12px; border-radius:6px; margin:0 0 58px 126px;
+  background:linear-gradient(90deg,__MAIN__,__ACCENT__); }
+.item { background:__BG__; border-radius:30px; padding:40px 44px; margin-bottom:34px;
+  display:flex; align-items:flex-start; overflow:hidden; }
+.item .mark { width:20px; height:20px; border-radius:50%; background:__MAIN__;
+  outline:8px solid __ACCENT__44; margin:24px 36px 0 4px; flex-shrink:0; }
+.item .t { font-size:__ISIZE__px; color:__TEXT__; line-height:1.5;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.pagefoot { margin-top:auto; display:flex; justify-content:space-between; align-items:center;
+  color:__SUB__; font-size:36px; padding-top:38px; border-top:3px dashed __ACCENT__88; }
+.pagefoot .pg b { color:__MAIN__; font-size:42px; }
 """
 
 CONTENT_BODY = """<div class="wrap">
 <div class="card">
+<div class="corner"></div>
 <div class="head"><div class="num">__NUM__</div><div class="h">__HEADING__</div></div>
+<div class="hbar"></div>
 __ITEMS__
-<div class="pagefoot"><span>__TOPIC__</span><span>__PAGE__/__TOTAL__</span></div>
+<div class="pagefoot"><span>__TOPIC__</span><span class="pg"><b>__PAGE__</b> / __TOTAL__</span></div>
 </div></div>"""
 
 # ============================================================
@@ -192,6 +215,11 @@ def fill(tpl, mapping):
     for k, v in mapping.items():
         tpl = tpl.replace(f"__{k}__", str(v))
     return tpl
+
+def clip(s, n):
+    """超长截断加省略号，防止文字溢出卡片。"""
+    s = str(s or "").strip()
+    return s if len(s) <= n else s[:n - 1] + "…"
 
 # ============================================================
 # 5. Step 函数
@@ -275,22 +303,33 @@ def render_images(data, topic, theme_name, out_dir):
                           MAIN=theme["main"], ACCENT=theme["accent"],
                           TEXT=theme["text"], SUB=theme["sub"])
             if card.get("type") == "cover":
-                line1 = esc(card.get("line1", data["title"]))
-                # 后半句加高亮色
-                if len(line1) > 4:
-                    cut = len(line1) // 2
-                    line1 = f"{line1[:cut]}<em>{line1[cut:]}</em>"
-                body_html = fill(COVER_BODY, dict(common, BADGE=esc(card.get("badge", "干货")),
-                                 LINE1=line1, LINE2=esc(card.get("line2", topic))))
-                css = fill(COVER_CSS, common)
+                raw1 = clip(card.get("line1", data["title"]), 12)
+                # 主标题按字数自动缩字号，避免溢出
+                n = len(raw1)
+                t1size = 150 if n <= 6 else 132 if n <= 8 else 112 if n <= 10 else 98
+                line1 = esc(raw1)
+                if n > 4:                       # 后半句加高亮色
+                    cut = n // 2
+                    line1 = f"{esc(raw1[:cut])}<em>{esc(raw1[cut:])}</em>"
+                body_html = fill(COVER_BODY, dict(common,
+                                 BADGE=esc(clip(card.get("badge", "干货"), 6)),
+                                 KICKER=esc(clip(topic, 14)),
+                                 LINE1=line1,
+                                 LINE2=esc(clip(card.get("line2", topic), 18))))
+                css = fill(COVER_CSS, dict(common, T1SIZE=t1size))
             else:
+                raw_items = [clip(it, 26) for it in card.get("items", [])[:5]]
+                isize = 52 if all(len(it) <= 16 for it in raw_items) else 46
                 items = "".join(
-                    f'<div class="item"><div class="dot"></div><div class="t">{esc(it)}</div></div>'
-                    for it in card.get("items", [])[:5])
+                    f'<div class="item"><div class="mark"></div><div class="t">{esc(it)}</div></div>'
+                    for it in raw_items)
+                heading = clip(card.get("heading", ""), 12)
+                hsize = 74 if len(heading) <= 8 else 62
                 body_html = fill(CONTENT_BODY, dict(common,
-                                 NUM=f"{i:02d}", HEADING=esc(card.get("heading", "")),
-                                 ITEMS=items, TOPIC=esc(topic), PAGE=i + 1, TOTAL=total))
-                css = fill(CONTENT_CSS, common)
+                                 NUM=f"{i:02d}", HEADING=esc(heading),
+                                 ITEMS=items, TOPIC=esc(clip(topic, 14)),
+                                 PAGE=i + 1, TOTAL=total))
+                css = fill(CONTENT_CSS, dict(common, HSIZE=hsize, ISIZE=isize))
             html = fill(HTML_BASE, dict(common, EXTRA_CSS=css, BODY=body_html))
             pg.set_content(html)
             pg.wait_for_timeout(150)
