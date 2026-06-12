@@ -351,6 +351,14 @@ def save_copy_text(data, out_dir):
         json.dump(data, f, ensure_ascii=False, indent=2)
     log(f"文案已保存：{path}")
 
+def _cursor_to_end(page):
+    """把光标强制移到编辑器全文末尾，防止话题标签插进正文中间。"""
+    for combo in ("Meta+ArrowDown", "Control+End"):
+        try:
+            page.keyboard.press(combo)
+        except Exception:
+            pass
+
 def _first_visible(page, selectors, timeout_each=3000):
     for sel in selectors:
         try:
@@ -473,10 +481,14 @@ def publish_to_xhs(data, image_paths, out_dir, auto_yes=False):
             editor.click()
             page.keyboard.insert_text(data["body"])
             log("已填正文")
+            page.wait_for_timeout(800)        # 等编辑器处理完长文本
             # ---- 打话题标签：输入 #词 后点联想下拉，转成真正的话题 ----
+            # 每次都先把光标跳到全文末尾，否则标签会插进正文中间
+            _cursor_to_end(page)
             page.keyboard.press("Enter")
             page.keyboard.press("Enter")
             for t in data["topics"]:
+                _cursor_to_end(page)
                 page.keyboard.type("#" + t, delay=50)
                 page.wait_for_timeout(1500)
                 sug = _first_visible(page, [
@@ -487,6 +499,7 @@ def publish_to_xhs(data, image_paths, out_dir, auto_yes=False):
                 if sug:
                     sug.click()
                     page.wait_for_timeout(400)
+                    _cursor_to_end(page)      # 点完下拉焦点会跳，重新归位
                 else:
                     page.keyboard.type(" ")   # 没联想就留纯文本标签
             log(f"已打 {len(data['topics'])} 个话题标签")
